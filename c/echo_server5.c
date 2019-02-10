@@ -7,6 +7,8 @@
 #include <signal.h>
 #include <sys/wait.h>
 
+
+
 void waitall (int sig) {
   int stat;
   pid_t pid;
@@ -18,7 +20,7 @@ void waitall (int sig) {
 }
 
 int main (void) {
-  int listenfd, connfd,daikiti_cnt=0;
+  int listenfd, connfd,connect_cnt=0;
   char buf[BUFSIZ], line_zero[1] = "\0",line_n[1] = "\n",line_r[1] = "\r";
   pid_t pid;
   struct sockaddr_in servaddr;
@@ -45,9 +47,12 @@ int main (void) {
     }
     fprintf (stderr, "accept\n");
     pid = fork ();
+    connect_cnt++;
     fprintf (stderr, "fork: %d\n", pid);
     if (pid == 0) {	/* child */
       //子プロセスが呼び出された時の処理．変数の宣言は先頭で行っておく
+     
+      fprintf(stderr,"同時接続人数=%d\n",connect_cnt);
       FILE *fp;
       int i = 0,cnt = 0,money = 0,cash = 0, money_flg = 0,pick_flg = 0,randnum;
       
@@ -70,7 +75,7 @@ int main (void) {
         //このbufの中に文章が入るため、その中身を判定
 	     fputs ("child: ", stderr);
 	     fputs (buf, stderr);
-       fprintf(stderr,"%d回目",cnt);
+       //fprintf(stderr,"%d回目",cnt);
 
        //改行コードの排斥
        //全てのOSに対応した改行コード排斥を行い，文字のみにする
@@ -79,7 +84,7 @@ int main (void) {
          if((strcmp(&buf[strlen(buf)-1],"\r") == 0)){
            buf[strlen(buf)-1] = line_zero[0];
          }
-         fprintf(stderr,"文字コードの排斥が実行された\n");
+         //fprintf(stderr,"文字コードの排斥が実行された\n");
        }
 
        fprintf(stderr,"%s\n",buf);
@@ -123,7 +128,7 @@ int main (void) {
                 switch(randnum){
                   case 1:
                     fputs("大吉!\n",fp);
-                    daikiti_cnt++;
+                  
                   
                     break;
                   case 2:
@@ -159,6 +164,7 @@ int main (void) {
       }
       fclose (fp);
       fputs ("child: exit\n", stderr);
+      connect_cnt--;
       exit (0);
     } else {		/* parent */
       fputs ("parent\n", stderr);
